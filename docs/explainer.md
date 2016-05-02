@@ -33,7 +33,7 @@ file system, as well as with each other.
 
 See also:
 * [Design Notes](design_notes.md), an informal Q&A about the design.
-* [User Flows](docs/user_flow.md), our UX story with mocks.
+* [User Flows](user_flow.md), our UX story with mocks.
 
 ## How is this different from other web interoperability systems?
 
