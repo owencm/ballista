@@ -71,13 +71,16 @@ session has already ended. It is not possible for the requester to learn the
 identity of the chosen application.
 
 `performAction`'s promise may be rejected in the following cases (it is possible
-to distinguish between these three failure modes, but again, not learn the
+to distinguish between these four failure modes, but again, not learn the
 identity of the chosen application):
 
+* The action was invalid (e.g., an unknown verb or inappropriate fields for the
+  given verb).
 * There were no apps available to handle that specific action.
 * The user cancelled the action instead of picking an app.
 * The data could not be delivered to the target app (e.g., no service worker was
-  registered, or the chosen native app could not be launched).
+  registered, or the chosen native app could not be launched), or the target app
+  explicitly rejected the action.
 
 We also provide a method for determining whether there are any applications that
 can handle a particular action:
