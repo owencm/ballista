@@ -24,6 +24,8 @@ partial interface WorkerNavigator {
 };
 ```
 
+### performAction
+
 The `navigator.actions` interface provides the `performAction` method which
 initiates a request.
 
@@ -82,6 +84,8 @@ identity of the chosen application):
   registered, or the chosen native app could not be launched), or the target app
   explicitly rejected the action.
 
+### canPerformAction
+
 We also provide a method for determining whether there are any applications that
 can handle a particular action:
 
@@ -112,3 +116,22 @@ device.) I suspect this entropy is minimal as most devices of a given operating
 system would have a similar set of capabilities, but it may allow identification
 of, e.g., users with native editors of obscure MIME types. Further analysis is
 warranted.
+
+### Verbs
+
+The *verb* is a string that determines what handlers are available (handlers
+explicitly register for certain verbs), as well as what fields are expected in
+the `options` and `data` objects, and how the interaction will take place (e.g.,
+whether it will be one-way or bidirectional). Each verb is its own
+mini-protocol.
+
+To avoid a) proliferation of overly specialized verbs, and b) mismatched
+expectations about what a particular verb means, we will limit the set of verbs
+to those defined in the standard. We will leave the set of verbs open for new
+additions in the future, but not allow individual handlers or requesters to
+invent their own verbs ad-hoc. User agents are expected to reject actions with
+unexpected verbs, and enforce that the correct options and data are supplied for
+the given verb.
+
+In this document, we define only a single verb, `"share"`, but we expect several
+other verbs to be defined in the initial standard.
