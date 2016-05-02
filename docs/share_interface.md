@@ -30,14 +30,14 @@ initiates a request.
 ```WebIDL
 partial interface Actions {
   Promise<Action> performAction((ActionOptions or DOMString) options,
-                                ActionPayload payload);
+                                ActionData data);
 };
 
 dictionary ActionOptions {
   DOMString verb;
 };
 
-dictionary ActionPayload {
+dictionary ActionData {
   DOMString? title;
   DOMString? text;
   DOMString? url;
@@ -54,7 +54,7 @@ The `performAction` method takes two arguments:
   to expect a response, etc). Currently just has `verb` (the only non-optional
   field) but we will expand this with more options in the future. If this is a
   string `x`, that is short-hand for `{verb: x}`.
-* `payload` is the object that will be delivered to the handler. It contains the
+* `data` is the object that will be delivered to the handler. It contains the
   data being shared between applications. Its fields depend on the verb (shown
   above are some of the fields for `share`, but more may be allowed, such as
   image data).
@@ -76,8 +76,8 @@ identity of the chosen application):
 
 * There were no apps available to handle that specific action.
 * The user cancelled the action instead of picking an app.
-* The payload could not be delivered to the target app (e.g., no service worker
-  was registered, or the chosen native app could not be launched).
+* The data could not be delivered to the target app (e.g., no service worker was
+  registered, or the chosen native app could not be launched).
 
 We also provide a method for determining whether there are any applications that
 can handle a particular action:
