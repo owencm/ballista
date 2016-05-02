@@ -55,14 +55,9 @@ The `performAction` method takes two arguments:
   field) but we will expand this with more options in the future. If this is a
   string `x`, that is short-hand for `{verb: x}`.
 * `payload` is the object that will be delivered to the handler. It contains the
-  data being shared between applications.
-
-There is a clean separation between the two: the user agent only looks at
-`options`; the handler only receives `payload`.
-
-This means the `payload` data structure will be quite flexible, with different
-fields expected depending on the verb. Shown above are some of the fields for
-`share`, but more may be allowed (such as image data).
+  data being shared between applications. Its fields depend on the verb (shown
+  above are some of the fields for `share`, but more may be allowed, such as
+  image data).
 
 `performAction` always shows some form of UI, to give the user a choice of
 application and get their approval to invoke and send data to a potentially
@@ -75,16 +70,14 @@ session. In the one-way use case, `id` will be `null`, indicating that the
 session has already ended. It is not possible for the requester to learn the
 identity of the chosen application.
 
-`performAction`'s promise may be rejected in the following cases:
+`performAction`'s promise may be rejected in the following cases (it is possible
+to distinguish between these three failure modes, but again, not learn the
+identity of the chosen application):
 
 * There were no apps available to handle that specific action.
 * The user cancelled the action instead of picking an app.
 * The payload could not be delivered to the target app (e.g., no service worker
   was registered, or the chosen native app could not be launched).
-
-It is possible to distinguish between these three failure modes (by the error
-type), but again, not learn the identity of the chosen application in the third
-case.
 
 We also provide a method for determining whether there are any applications that
 can handle a particular action:
