@@ -137,14 +137,16 @@ any tabs.
 
 #### manifest.webmanifest
 
-```js
+```JSON
 {
   "name": "Includinator",
   "short_name": "Includinator",
   "icons": [...],
-  "actions": {
-    "share": {}
-  }
+  "actions": [
+    {
+      "verb": "share"
+    }
+  ]
 }
 ```
 
@@ -152,7 +154,7 @@ any tabs.
 
 ```js
 self.addEventListener('action', event => {
-  if (event.verb == 'share') {
+  if (event.options.verb == 'share') {
     if (event.data.url === undefined)
       throw new Error('Did not contain URL.');
 
@@ -231,17 +233,18 @@ we need a web app manifest and a service worker.
 
 #### manifest.webmanifest
 
-```js
+```JSON
 {
   "name": "WebEditor",
   "short_name": "Editor",
   "icons": [...],
-  "actions": {
-    "open": {
+  "actions": [
+    {
+      "verb": "open",
       "bidirectional": true,
       "types": ["text/*"]
     }
-  }
+  ]
 }
 ```
 
