@@ -153,7 +153,7 @@ any tabs.
 #### serviceworker.js
 
 ```js
-self.addEventListener('action', event => {
+navigator.actions.addEventListener('handle', event => {
   if (event.options.verb == 'share') {
     if (event.data.url === undefined)
       throw new Error('Did not contain URL.');
