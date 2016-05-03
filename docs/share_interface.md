@@ -30,7 +30,7 @@ The `navigator.actions` interface provides the `performAction` method which
 initiates a request.
 
 ```WebIDL
-partial interface Actions {
+interface Actions {
   Promise<Action> performAction((ActionOptions or DOMString) options,
                                 ActionData data);
 };
@@ -192,15 +192,16 @@ of user agents. It is easier to add such a method later than remove it.
 ### Event handlers
 
 When the user picks a registered web app as the target of an action, the
-handler's service worker starts up (if it is not already running), and an
-`"action"` event is fired at the service worker's global scope (`self`).
+handler's service worker starts up (if it is not already running), and a
+`"handle"` event is fired at the `navigator.actions` object.
 
 ```WebIDL
-partial interface ServiceWorkerGlobalScope {
-  attribute EventHandler onaction;
+partial interface Actions {
+  attribute EventHandler onhandle;
 };
+Actions implements EventTarget;
 
-interface ActionEvent : ExtendableEvent {
+interface HandleEvent : ExtendableEvent {
   readonly attribute long id;
   readonly attribute ActionOptions options;
   readonly attribute ActionData data;
@@ -209,8 +210,8 @@ interface ActionEvent : ExtendableEvent {
 };
 ```
 
-The `onaction` handler (with corresponding event type `"action"`) takes an
-`ActionEvent`. The `id` is a unique integer corresponding to the incoming
+The `onhandle` handler (with corresponding event type `"handle"`) takes an
+`HandleEvent`. The `id` is a unique integer corresponding to the incoming
 action. The `options` and `data` fields are clones of the `options` and `data`
 parameters passed to the `performAction` method by the requester.
 
@@ -228,7 +229,7 @@ end of the action, and there is no further communication in either direction.
 The handler-side API is defined entirely within the service worker. If the
 handler needs to provide UI (which should be the common case), the service
 worker must create a foreground page and send the appropriate data between the
-worker and foreground page, out of band. The action event handler is [allowed to
+worker and foreground page, out of band. The handle event handler is [allowed to
 show a
 popup](https://html.spec.whatwg.org/multipage/browsers.html#allowed-to-show-a-popup)
 for the purpose of the
