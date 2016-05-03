@@ -136,6 +136,23 @@ the given verb.
 In this document, we define only a single verb, `"share"`, but we expect several
 other verbs to be defined in the initial standard.
 
+### Built-in and native app handlers (web-to-native)
+
+The user agent may choose to provide handlers that do not correspond to
+registered web applications. When the user selects these "fake" handlers, the
+user agent itself performs the duties of the handler. This can include:
+
+* Providing a built-in service (such as "copy to clipboard").
+* Forwarding the action to the native app picking system (e.g., [Android
+  intents](http://developer.android.com/training/sharing/send.html), [iOS share
+  sheets](https://developer.apple.com/library/ios/documentation/UIKit/Reference/UIActivityViewController_Class/index.html),
+  [Windows Share contracts](https://msdn.microsoft.com/en-us/windows/uwp/app-to-app/share-data)).
+* Forwarding the action directy on to a native system application.
+
+In any case, the user agent is responsible for marshalling data to/from the
+required formats and generally ensuring that the built-in or native handler
+behaves like a web handler.
+
 ## Handler API
 
 Handlers **must** have a registered [service
@@ -250,3 +267,56 @@ incrementing counter should suffice). The values in the requester and handler do
 not correspond (i.e., if a requester and handler are engaged in an ongoing
 action, they may each be using a different number to refer to that action). The
 values are expected to be unique for all time, for a given worker.
+
+### System-generated actions (native-to-web)
+
+Actions do not need to come from web requesters. The user agent may trigger an
+action from some external stimulus, such as the user opening a file, or an
+incoming action event from a native app. As in the web-to-native case, the user
+agent is responsible for simulating the requester side of the connection and
+marshalling data into the correct format.
+
+For example, the user agent may register web handlers into the operating
+system's native application pickers. When the user picks a web handler, the user
+agent creates an `options` and `data` object and invokes the web handler, as if
+it had been triggered by a web requester.
+
+## The "share" verb
+
+When an action is sent using the `"share"` verb, the following extra rules
+apply:
+
+* It must be a one-way action (no response after the initial promise completes).
+* No additional `options` are recognised.
+* The `data` object may have any of (and should have at least one of) the
+  following optional fields:
+  * `title` (string): The title of the document being shared. May be ignored by
+    the handler.
+  * `text` (string): Arbitrary text that forms the body of the message being
+    shared.
+  * `url` (string): A URL or URI referring to a resource being shared.
+
+We may later expand this to allow image data or file blobs.
+
+How the handler deals with the data object is at the handler's discretion, and
+will generally depend on the type of app. Here are some suggestions:
+
+* An email client might draft a new email, using `title` as the subject of an
+  email, with `text` and `url` concatenated together as the body.
+* A social networking app might draft a new post, ignoring `title`, using `text`
+  as the body of the message and adding `url` as a link. If `text` is missing,
+  it might use `url` in the body as well. If `url` is missing, it might scan
+  `text` looking for a URL and add that as a link.
+* A text messaging app might draft a new message, ignoring `title` and using
+  `text` and `url` concatenated together. It might truncate the text or replace
+  `url` with a short link to fit into the message size.
+
+When a user agent is acting as a requester or handler on behalf of a native
+system application, it must understand the above requirements and convert
+to/from the appropriate system data structures. For example, on Android, when a
+web requester is used to send a system intent to a native application, the user
+agent may create an
+[Intent](http://developer.android.com/reference/android/content/Intent.html)
+object with `ACTION_SEND`, setting the `EXTRA_SUBJECT` to `title`. Since Android
+intents do not have a URL field, `EXTRA_TEXT` would be set to `text` and `url`
+concatenated together.
