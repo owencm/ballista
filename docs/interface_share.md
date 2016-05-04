@@ -45,9 +45,7 @@ dictionary ActionData {
   DOMString? url;
 };
 
-dictionary Action {
-  long id;
-};
+dictionary Action {};
 ```
 
 The `performAction` method takes two arguments:
@@ -66,11 +64,9 @@ application and get their approval to invoke and send data to a potentially
 native application (which carries a security risk). UX mocks are shown
 [here](user_flow.md).
 
-`performAction` returns (asynchronously, via a promise) an `Action` object. In
-general, `id` will be an integer that uniquely identifies an ongoing action
-session. In the one-way use case, `id` will be `null`, indicating that the
-session has already ended. It is not possible for the requester to learn the
-identity of the chosen application.
+`performAction` returns (asynchronously, via a promise) an `Action` object. This
+object currently contains no fields, but we will extend it later. It is not
+possible for the requester to learn the identity of the chosen application.
 
 `performAction`'s promise may be rejected in the following cases (it is possible
 to distinguish between these four failure modes, but again, not learn the
@@ -219,7 +215,6 @@ partial interface Actions {
 Actions implements EventTarget;
 
 interface HandleEvent : ExtendableEvent {
-  readonly attribute long id;
   readonly attribute ActionOptions options;
   readonly attribute ActionData data;
 
@@ -227,10 +222,9 @@ interface HandleEvent : ExtendableEvent {
 };
 ```
 
-The `onhandle` handler (with corresponding event type `"handle"`) takes an
-`HandleEvent`. The `id` is a unique integer corresponding to the incoming
-action. The `options` and `data` fields are clones of the `options` and `data`
-parameters passed to the `performAction` method by the requester.
+The `onhandle` handler (with corresponding event type `"handle"`) takes a
+`HandleEvent`. The `options` and `data` fields are clones of the `options` and
+`data` parameters passed to the `performAction` method by the requester.
 
 If the `reject` method is called, the action fails and the requester's promise
 is rejected. This must be called within the lifetime of the event (either in the
@@ -252,21 +246,6 @@ popup](https://html.spec.whatwg.org/multipage/browsers.html#allowed-to-show-a-po
 for the purpose of the
 [`clients.openWindow`](https://www.w3.org/TR/service-workers/#clients-openwindow-method)
 method.
-
-### IDs
-
-Both the requester and handler APIs deal with integer IDs for uniquely
-identifying actions. In both cases, these IDs provide a handle on potentially
-long-running actions that can outlive both the foreground page and the service
-worker context. We use integer IDs rather than Action objects so that they may
-be serialized into a local database for retrieval after the service worker has
-been stopped and restarted.
-
-The ID values may be chosen arbitrarily by the user agent (but a simple
-incrementing counter should suffice). The values in the requester and handler do
-not correspond (i.e., if a requester and handler are engaged in an ongoing
-action, they may each be using a different number to refer to that action). The
-values are expected to be unique for all time, for a given worker.
 
 ### System-generated actions (native-to-web)
 
