@@ -175,3 +175,70 @@ This is deliberate: the user agent should not need to access `data` in order to
 filter the handlers list or decide how to behave (e.g., so that
 `canPerformAction` can operate without a `data` payload). Therefore, the MIME
 type is duplicated into the `options` object.
+
+## Discussion: Two new modes
+
+Since proposing the above interface, we have discovered the need for two
+additional modes:
+
+1. A single-response bidirectional action with modal UI (the handler closes
+   right after sending the response) and no requirement that the requester be a
+   service worker. For implementing a "pick file" or "take photo" action.
+2. A reverse multi-response bidirectional action: once the action is
+   established, the requester can now send updates to the handler (not the other
+   way around). For implementing a "save as" action, where an editor can request
+   that a document be stored in some service, and once saved, send updates to
+   the file.
+
+For #1, why are we conflating a) single-response, b) modality and c) no
+requirement to request from service worker? We thought about providing all three
+of these as separate options, but then we realised they are intrinsically
+linked:
+
+* Modality implies single-response: if you don't use the requester until the
+  action ends, then you only need one response. The inverse isn't a strict
+  implication (you could have single-response without modality), but it seems
+  appropriate that a handler that is going to deliver a single response be
+  modal.
+* Requesting from the foreground page implies modality: The requirement to
+  request from service worker is to address the problem of the requester closing
+  before the handler. If the handler is modal, the requester can't close first,
+  so this isn't a problem.
+
+This implies that instead of a `bidirectional` flag, we should have a four-way
+enum:
+
+```WebIDL
+enum ActionMode {
+  "one_way",
+  "single_response_modal",
+  "multi_response",
+  "reverse_multi_response"
+};
+```
+
+The `one_way` and `multi_response` modes are as described in the spec above.
+The `single_response_modal` mode makes the requester invisible or
+non-interactive until the handler closes. It has the same interface as
+`multi_response` but no `update` method (only a `close` method). The
+`reverse_multi_response` mode moves the `update` and `close` methods to the
+requester, and the `update` event to the handler. Only `multi_response` requires
+that the requester be a service worker.
+
+We omit this complexity from the spec above, for the time being, because these
+two new modes are much more speculative.
+
+Another consideration is: why do we have a `bidirectional` flag in either the
+web app manifest or the request options? If bidirectionality is implied by the
+verb, there is no need to have either the requester or handler declare it. We
+could remove it, but we'd need to be sure that there is no desire for a verb
+that could be either bidirectional or not.
+
+## Discussion: Requester-side close method
+
+It may be useful to allow the requester to close an action prematurely (e.g., if
+the requester is a file store and the user deletes the file, inform any open
+editors that the file has been deleted and no further updates will be accepted).
+This means the requester needs to be able to call the `close` method and the
+handler needs to receive `update` events (or perhaps we want to split `update`
+into separate `update` and `close` events).
