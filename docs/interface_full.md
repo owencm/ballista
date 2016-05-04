@@ -112,7 +112,7 @@ We add the `id` attribute to `HandleEvent` objects:
 
 ```WebIDL
 interface HandleEvent : ExtendableEvent {
-  readonly attribute long id;
+  readonly attribute long? id;
   readonly attribute ActionOptions options;
   readonly attribute ActionData data;
 
