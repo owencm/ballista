@@ -7,7 +7,7 @@ Ballista one-directional API. To avoid complexity, we avoid discussing the
 bidirectional parts of the Ballista project here.
 
 Examples of using the one-directional API for sharing can be seen in the
-[explainer.md](explainer document).
+[explainer document](explainer.md).
 
 ## Requester API
 
