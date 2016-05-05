@@ -15,18 +15,14 @@ in the [explainer document](explainer.md).
 
 ### performAction
 
-The `performAction` method does not change, but the `options` and `data`
-arguments, as well as the return value, have additional fields.
+The `performAction` method does not change, but the `options` argument and the
+return value have additional fields.
 
 ```WebIDL
 dictionary ActionOptions {
   DOMString verb;
   boolean? bidirectional;
   DOMString? type;
-};
-
-partial dictionary ActionData {
-  Blob? file;
 };
 
 dictionary Action {
@@ -36,7 +32,7 @@ dictionary Action {
 
 This adds the following new capabilities suitable for the edit use case:
 * The requester can request a *bidirectional* action (expecting a response).
-* The data can include a file or blob.
+* The options can include a MIME type for matching against handlers.
 
 If `options.bidirectional` is `true` (only available for certain verbs), the
 resulting `Action` object will have an integer `id` that uniquely identifies an
@@ -48,7 +44,9 @@ A bidirectional action *must* be sent from a service worker (not a foreground
 page), to ensure there is a way to receive responses (see [Design
 Notes](design_notes.md#resilience-in-the-face-of-death)).
 
-The remaining fields are described in the verb-specific documentation.
+The `options.type` field is an optional MIME type describing the type of a
+binary blob included in `data`. It can be used with any verb, but is designed
+for verbs which transfer file data, such as `edit`.
 
 ### Event handlers
 
@@ -63,7 +61,7 @@ Actions implements EventTarget;
 
 interface UpdateEvent : Event {
   readonly attribute long id;
-  readonly attribute ActionData data;
+  readonly attribute object data;
   readonly attribute boolean done;
 };
 ```
@@ -114,7 +112,7 @@ We add the `id` attribute to `HandleEvent` objects:
 interface HandleEvent : ExtendableEvent {
   readonly attribute long? id;
   readonly attribute ActionOptions options;
-  readonly attribute ActionData data;
+  readonly attribute object data;
 
   void reject(DOMException error);
 };
@@ -130,8 +128,8 @@ The new response methods are only available from service workers.
 
 ```WebIDL
 partial interface Actions {
-  void update(long id, ActionData data);
-  void close(long id, ActionData data);
+  void update(long id, object data);
+  void close(long id, object data);
 };
 ```
 
