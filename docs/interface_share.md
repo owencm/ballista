@@ -11,8 +11,8 @@ Examples of using the one-directional API for sharing can be seen in the
 
 ## Requester API
 
-First, we add the `navigator.actions` interface (available from both foreground
-pages and workers), which is where our API surface lives.
+The `navigator.actions` interface (available from both foreground pages and
+workers) is where our API surface lives.
 
 ```WebIDL
 partial interface Navigator {
@@ -32,17 +32,11 @@ initiates a request.
 ```WebIDL
 interface Actions {
   Promise<Action> performAction((ActionOptions or DOMString) options,
-                                ActionData data);
+                                object data);
 };
 
 dictionary ActionOptions {
   DOMString verb;
-};
-
-dictionary ActionData {
-  DOMString? title;
-  DOMString? text;
-  DOMString? url;
 };
 
 dictionary Action {};
@@ -76,14 +70,14 @@ identity of the chosen application):
   given verb).
 * There were no apps available to handle that specific action.
 * The user cancelled the action instead of picking an app.
-* The data could not be delivered to the target app (e.g., no service worker was
-  registered, or the chosen native app could not be launched), or the target app
-  explicitly rejected the action.
+* The data could not be delivered to the target app (e.g., service worker could
+  not start, had no event handler, or the chosen native app could not be
+  launched), or the target app explicitly rejected the action.
 
 ### canPerformAction
 
-We also provide a method for determining whether there are any applications that
-can handle a particular action:
+`navigator.actions` also provides a method for determining whether there are any
+applications that can handle a particular action:
 
 ```WebIDL
 partial interface Actions {
@@ -216,7 +210,7 @@ Actions implements EventTarget;
 
 interface HandleEvent : ExtendableEvent {
   readonly attribute ActionOptions options;
-  readonly attribute ActionData data;
+  readonly attribute object data;
 
   void reject(DOMException error);
 };
@@ -240,20 +234,20 @@ end of the action, and there is no further communication in either direction.
 The handler-side API is defined entirely within the service worker. If the
 handler needs to provide UI (which should be the common case), the service
 worker must create a foreground page and send the appropriate data between the
-worker and foreground page, out of band. The handle event handler is [allowed to
-show a
-popup](https://html.spec.whatwg.org/multipage/browsers.html#allowed-to-show-a-popup)
-for the purpose of the
+worker and foreground page, out of band. The `handle` event handler is [allowed
+to show a
+popup](https://html.spec.whatwg.org/multipage/browsers.html#allowed-to-show-a-popup),
+which means it can call the
 [`clients.openWindow`](https://www.w3.org/TR/service-workers/#clients-openwindow-method)
 method.
 
 ### System-generated actions (native-to-web)
 
 Actions do not need to come from web requesters. The user agent may trigger an
-action from some external stimulus, such as the user opening a file, or an
-incoming action event from a native app. As in the web-to-native case, the user
-agent is responsible for simulating the requester side of the connection and
-marshalling data into the correct format.
+action from some external stimulus, such as the user opening a file, or choosing
+a web app as the target of a system intent. As in the web-to-native case, the
+user agent is responsible for simulating the requester side of the connection
+and marshalling data into the correct format.
 
 For example, the user agent may register web handlers into the operating
 system's native application pickers. When the user picks a web handler, the user
