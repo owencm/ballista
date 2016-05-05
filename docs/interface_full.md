@@ -100,9 +100,9 @@ defaults to false.
 The `types` member is an optional list of MIME types that the handler supports.
 If present and non-empty, the handler will only be available in a picking dialog
 if the request's `options.type` matches one of the types in the handler's
-manifest. Supports glob syntax (`"*"` matches any string; e.g., `"text/*"`
-matches any MIME type starting with "text/"). If `types` is omitted, defaults to
-`["*"]` (matching all types).
+manifest. Elements of this list can use glob syntax (`"*"` matches any string;
+e.g., `"text/*"` matches any MIME type starting with "text/"). If `types` is
+omitted, defaults to `["*"]` (matching all types).
 
 ### Event handlers
 
