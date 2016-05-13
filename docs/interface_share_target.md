@@ -14,13 +14,11 @@ manifests](https://www.w3.org/TR/appmanifest/).
 Examples of using the share target API for sharing can be seen in the
 [explainer document](explainer.md).
 
-## Handler API
-
 Handlers **must** have a registered [service
 worker](https://www.w3.org/TR/service-workers/) and a [web app
 manifest](https://www.w3.org/TR/appmanifest/).
 
-### App manifest
+## App manifest
 
 The first thing a handler needs to do is declare its share handling capabilities
 in the app manifest:
@@ -49,7 +47,7 @@ still be a requirement to declare `supports_share` in the manifest. For now, we
 have omitted such a method from the design to keep control in the hands of user
 agents. It is easier to add such a method later than remove it.
 
-### Event handlers
+## Event handlers
 
 When the user picks a registered web app as the target of a share, the
 handler's service worker starts up (if it is not already running), and a
@@ -103,7 +101,7 @@ which means it can call the
 [`clients.openWindow`](https://www.w3.org/TR/service-workers/#clients-openwindow-method)
 method.
 
-### System-generated shares (native-to-web)
+## System-generated shares (native-to-web)
 
 Share events do not need to come from web requesters. The user agent may
 trigger a share from some external stimulus, such as the user choosing a web

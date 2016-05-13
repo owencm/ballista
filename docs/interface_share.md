@@ -12,9 +12,7 @@ API](interface_share_target.md).
 Examples of using the share API for sharing can be seen in the
 [explainer document](explainer.md).
 
-## Requester API
-
-### share
+## share
 
 The `navigator.share` function (available from both foreground pages and
 workers) is the main method of the interface:
@@ -60,7 +58,7 @@ modes, but again, not learn the identity of the chosen application):
   not start, had no event handler, or the chosen native app could not be
   launched), or the target app explicitly rejected the share event.
 
-### canShare
+## canShare
 
 `navigator` also provides a method for determining whether there are any
 applications that can handle sharing:
@@ -83,7 +81,7 @@ press it.
 **TODO(mgiuca)**: This may have to be asynchronous, so that the implementation
 can query the file system without blocking.
 
-### Built-in and native app handlers (web-to-native)
+## Built-in and native app handlers (web-to-native)
 
 The user agent may choose to provide handlers that do not correspond to
 registered web applications. When the user selects these "fake" handlers, the
