@@ -9,19 +9,16 @@ system events (e.g., shares from native apps).
 
 This API requires the user agent to support both [service
 workers](https://www.w3.org/TR/service-workers/) and [web app
-manifests](https://www.w3.org/TR/appmanifest/).
+manifests](https://www.w3.org/TR/appmanifest/). The [Ballista Share
+API](interface_share.md) is not required, but recommended.
 
 Examples of using the share target API for sharing can be seen in the
 [explainer document](explainer.md).
 
-Handlers **must** have a registered [service
-worker](https://www.w3.org/TR/service-workers/) and a [web app
-manifest](https://www.w3.org/TR/appmanifest/).
-
 ## App manifest
 
 The first thing a handler needs to do is declare its share handling capabilities
-in the app manifest:
+in its [web app manifest](https://www.w3.org/TR/appmanifest/):
 
 ```WebIDL
 partial dictionary Manifest {
@@ -49,6 +46,9 @@ agents. It is easier to add such a method later than remove it.
 
 ## Event handlers
 
+Handlers **must** have a registered [service
+worker](https://www.w3.org/TR/service-workers/).
+
 When the user picks a registered web app as the target of a share, the
 handler's service worker starts up (if it is not already running), and a
 `"share"` event is fired at the global object.
@@ -59,15 +59,20 @@ partial interface WorkerGlobalScope {
 };
 
 interface ShareEvent : ExtendableEvent {
-  readonly attribute object data;
+  readonly attribute ShareData data;
 
   void reject(DOMException error);
+};
+
+dictionary ShareData {
+  DOMString? title;
+  DOMString? text;
+  DOMString? url;
 };
 ```
 
 The `onshare` handler (with corresponding event type `"share"`) takes a
-`ShareEvent`. The `data` field is a clone of the `data` parameter passed to the
-`share` method by the requester.
+`ShareEvent`. The `data` field provides data from the sending application.
 
 How the handler deals with the data object is at the handler's discretion, and
 will generally depend on the type of app. Here are some suggestions:
@@ -82,14 +87,20 @@ will generally depend on the type of app. Here are some suggestions:
   `text` and `url` concatenated together. It might truncate the text or replace
   `url` with a short link to fit into the message size.
 
-If the `reject` method is called, the share fails and the requester's promise is
-rejected. This must be called within the lifetime of the event (either in the
-event handler, or in the promise passed to the event's
-[`waitUntil`](https://www.w3.org/TR/service-workers/#wait-until-method) method).
-The share also fails if the promise passed to `waitUntil` is rejected. Once the
-event completes without failing, the share automatically succeeds, and the
-requester's promise is resolved. The end of the event's lifetime marks the end
-of the share, and there is no further communication in either direction.
+A share fails if:
+
+* The handler had no registered service worker.
+* There was an error during service worker initialization.
+* There is no event handler for `share` events.
+* The event handler explicitly calls the event's `reject` method (either in the
+  event handler, or in the promise passed to the event's
+  [`waitUntil`](https://www.w3.org/TR/service-workers/#wait-until-method)
+  method).
+* The promise passed to `waitUntil` is rejected.
+
+Once the event completes without failing, the share automatically succeeds, and
+the requester's promise is resolved. The end of the event's lifetime marks the
+end of the share, and there is no further communication in either direction.
 
 The handler-side API is defined entirely within the service worker. If the
 handler needs to provide UI (which should be the common case), the service
@@ -101,15 +112,19 @@ which means it can call the
 [`clients.openWindow`](https://www.w3.org/TR/service-workers/#clients-openwindow-method)
 method.
 
-## System-generated shares (native-to-web)
+## Where do shares come from?
 
-Share events do not need to come from web requesters. The user agent may
-trigger a share from some external stimulus, such as the user choosing a web
-app as the target of a system intent. As in the web-to-native case, the user
-agent is responsible for simulating the requester side of the connection and
-marshalling data into the correct format.
+Share events can be sent from a variety of places:
 
-For example, the user agent may register web handlers into the operating
-system's native application pickers. When the user picks a web handler, the user
-agent creates a `data` object and invokes the web handler, as if it had been
-triggered by a web requester.
+* Built-in trigger (e.g., user picks "Share" from a browser's menu, to share the
+  URL in the address bar).
+* A native application.
+* A web application using the [Ballista Share API](interface_share.md).
+
+There will usually be a picker that lets the user select a target app. This
+could be the native system app picker, or a user-agent-supplied picker. The apps
+could include other system apps and actions alongside the web app handlers.
+
+If an event comes from a web app, the `data` field of the event should be a
+clone of the `data` parameter to `navigator.share`. If the event comes from some
+other source, the user agent may construct the `data` object as appropriate.
