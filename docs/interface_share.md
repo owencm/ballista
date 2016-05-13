@@ -12,18 +12,24 @@ API](interface_share_target.md).
 Examples of using the share API for sharing can be seen in the
 [explainer document](explainer.md).
 
-## share
+## navigator.share
 
 The `navigator.share` function (available from both foreground pages and
 workers) is the main method of the interface:
 
 ```WebIDL
 partial interface Navigator {
-  Promise<void> share(object data);
+  Promise<void> share(ShareData data);
 };
 
 partial interface WorkerNavigator {
-  Promise<void> share(object data);
+  Promise<void> share(ShareData data);
+};
+
+dictionary ShareData {
+  DOMString? title;
+  DOMString? text;
+  DOMString? url;
 };
 ```
 
@@ -58,7 +64,7 @@ modes, but again, not learn the identity of the chosen application):
   not start, had no event handler, or the chosen native app could not be
   launched), or the target app explicitly rejected the share event.
 
-## canShare
+## navigator.canShare
 
 `navigator` also provides a method for determining whether there are any
 applications that can handle sharing:
