@@ -55,14 +55,13 @@ application (which carries a security risk). UX mocks are shown
 `share`'s promise is resolved if the user chooses a target application,
 and that application accepts the data without error. The promise may be rejected
 in the following cases (it is possible to distinguish between these four failure
-modes, but again, not learn the identity of the chosen application):
+modes, but not learn the identity of the chosen application):
 
 * The share was invalid (e.g., inappropriate fields in the `data` parameter).
 * There were no apps available to handle sharing.
 * The user cancelled the picker dialog instead of picking an app.
-* The data could not be delivered to the target app (e.g., service worker could
-  not start, had no event handler, or the chosen native app could not be
-  launched), or the target app explicitly rejected the share event.
+* The data could not be delivered to the target app (e.g., the chosen app could
+  not be launched), or the target app explicitly rejected the share event.
 
 ## navigator.canShare
 
@@ -87,27 +86,30 @@ press it.
 **TODO(mgiuca)**: This may have to be asynchronous, so that the implementation
 can query the file system without blocking.
 
-## Built-in and native app handlers (web-to-native)
+## Share handlers
 
-The user agent may choose to provide handlers that do not correspond to
-registered web applications. When the user selects these "fake" handlers, the
-user agent itself performs the duties of the handler. This can include:
+The list of share targets or handlers can be populated from a variety of
+sources, depending on the user agent and underlying OS:
 
-* Providing a built-in service (such as "copy to clipboard").
-* Forwarding the event to the native app picking system (e.g., [Android
-  intents](http://developer.android.com/training/sharing/send.html), [iOS share
-  sheets](https://developer.apple.com/library/ios/documentation/UIKit/Reference/UIActivityViewController_Class/index.html),
-  [Windows Share contracts](https://msdn.microsoft.com/en-us/windows/uwp/app-to-app/share-data)).
-* Forwarding the event directy on to a native system application.
+* Built-in service (e.g., "copy to clipboard").
+* Native applications.
+* Web applications registered using the [Ballista Share Target
+  API](interface_share_target.md).
 
-In any case, the user agent is responsible for marshalling data to/from the
-required formats and generally ensuring that the built-in or native handler
-behaves like a web handler. For example, on Android, when a web requester is
-used to send a system intent to a native application, the user agent may create
-an [Intent](http://developer.android.com/reference/android/content/Intent.html)
+The user agent can support any or all of the above (for example, on some
+platforms, there is no system for native apps to receive share data; some user
+agents may not support the Share Target API).
+
+The user agent may either present its own picker UI and then forward the share
+data to the chosen app, or simply forward the share data to the system's native
+app picking system (e.g., Android, iOS and Windows 10 all [support this concept
+natively](native.md)) and let the OS do the work.
+
+When forwarding to a website using the Share Target API, the `ShareData` object
+is simply cloned. When forwarding to a native app, the user agent should do its
+best to map the fields onto the equivalent concepts. For example, on Android,
+when a share is sent to a native application, the user agent may create an
+[Intent](http://developer.android.com/reference/android/content/Intent.html)
 object with `ACTION_SEND`, setting the `EXTRA_SUBJECT` to `title`. Since Android
 intents do not have a URL field, `EXTRA_TEXT` would be set to `text` and `url`
 concatenated together.
-
-**Note**: An implementation may, in fact, choose to omit the web handler API
-altogether, and just present built-in handlers.
